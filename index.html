@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TimeTravel Agency — Voyagez à travers le temps</title>
+  <meta name="description" content="Agence de voyage temporel de luxe. Trois époques légendaires : Paris 1889, le Crétacé et Florence 1504. Découvrez, personnalisez et réservez votre voyage dans le temps." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --gold: #c9a84c; --gold-light: #e8c96a; --dark: #0a0a0f; --dark2: #111118; }
+    * { scroll-behavior: smooth; }
+    body { background: var(--dark); color: #e8e8e8; font-family: 'Inter', sans-serif; }
+    h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+    /* Étoiles animées */
+    #stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star { position: absolute; border-radius: 50%; background: white; animation: twinkle var(--d) ease-in-out infinite; opacity: 0; }
+    @keyframes twinkle { 0%,100%{opacity:0;transform:scale(0.8)} 50%{opacity:var(--o);transform:scale(1)} }
+
+    /* Scroll animations */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* Cards destinations */
+    .dest-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .dest-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(201,168,76,0.25); }
+    .dest-card img { transition: transform 0.5s ease; }
+    .dest-card:hover img { transform: scale(1.05); }
+
+    /* Gold border */
+    .gold-border { border: 1px solid rgba(201,168,76,0.3); }
+    .gold-border:hover { border-color: rgba(201,168,76,0.7); }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .modal-box { animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Chatbot */
+    #chat-window { display: none; }
+    #chat-window.open { display: flex; animation: slideUp 0.3s ease; }
+    .chat-msg { animation: fadeIn 0.3s ease; }
+    .chat-scroll::-webkit-scrollbar { width: 4px; }
+    .chat-scroll::-webkit-scrollbar-track { background: #1a1a2e; }
+    .chat-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+    /* Quiz */
+    .quiz-btn { transition: all 0.2s ease; }
+    .quiz-btn:hover { background: rgba(201,168,76,0.15); border-color: var(--gold); }
+    .quiz-btn.selected { background: rgba(201,168,76,0.2); border-color: var(--gold); color: var(--gold-light); }
+
+    /* Hero video */
+    #hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.35; z-index: 0; }
+
+    /* Scrollbar global */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { transition: none; opacity: 1; transform: none; }
+      #hero-video { display: none; }
+      .star { animation: none; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- Étoiles de fond -->
+<div id="stars"></div>
+
+<!-- ═══════════════════════════════════════ NAVBAR ═══════════════════════════════════════ -->
+<nav class="fixed top-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-yellow-800/20">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="#home" class="flex items-center gap-2">
+      <span class="text-2xl" style="color:var(--gold)">✦</span>
+      <span class="font-bold text-lg tracking-widest" style="font-family:'Playfair Display',serif; color:var(--gold)">TimeTravel Agency</span>
+    </a>
+    <div class="hidden md:flex items-center gap-8 text-sm tracking-wider text-gray-300">
+      <a href="#agence" class="hover:text-yellow-400 transition-colors">L'agence</a>
+      <a href="#destinations" class="hover:text-yellow-400 transition-colors">Destinations</a>
+      <a href="#quiz" class="hover:text-yellow-400 transition-colors">Quiz</a>
+      <a href="#contact" class="hover:text-yellow-400 transition-colors">Réserver</a>
+      <button onclick="openChat()" class="px-4 py-2 rounded text-xs tracking-widest transition-all" style="border:1px solid var(--gold);color:var(--gold)" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+        CONSEILLER IA
+      </button>
+    </div>
+    <!-- Mobile menu button -->
+    <button class="md:hidden text-gray-300" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">☰</button>
+  </div>
+  <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 flex flex-col gap-3 text-sm text-gray-300 bg-black/80">
+    <a href="#agence" class="hover:text-yellow-400" onclick="document.getElementById('mobile-menu').classList.add('hidden')">L'agence</a>
+    <a href="#destinations" class="hover:text-yellow-400" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Destinations</a>
+    <a href="#quiz" class="hover:text-yellow-400" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Quiz</a>
+    <a href="#contact" class="hover:text-yellow-400" onclick="document.getElementById('mobile-menu').classList.add('hidden')">Réserver</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════ HERO ═══════════════════════════════════════ -->
+<section class="relative min-h-screen flex items-center justify-center text-center px-6 overflow-hidden" id="home">
+  <!-- Vidéo de fond (assets/animations.mp4) -->
+  <video id="hero-video" autoplay muted loop playsinline preload="auto" poster="./images/paris.png">
+    <source src="./assets/animations.mp4" type="video/mp4" />
+  </video>
+  <div class="absolute inset-0 z-0" style="background: radial-gradient(ellipse at center, rgba(10,10,15,0.4) 0%, var(--dark) 75%)"></div>
+  <div class="relative z-10 max-w-4xl mx-auto">
+    <p class="text-xs tracking-[0.4em] mb-6 uppercase" style="color:var(--gold)">Agence de Voyage Temporel</p>
+    <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight text-white">
+      Voyagez à<br/>
+      <span style="color:var(--gold)">travers le temps</span>
+    </h1>
+    <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+      Trois époques légendaires. Une agence d'exception.<br/>Des souvenirs qui traversent les siècles.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="#destinations" class="px-8 py-4 text-sm font-medium tracking-widest uppercase transition-all rounded" style="background:var(--gold);color:#0a0a0f" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">
+        Découvrir nos voyages
+      </a>
+      <button onclick="openChat()" class="px-8 py-4 text-sm font-medium tracking-widest uppercase transition-all rounded gold-border text-gray-300 hover:text-yellow-400">
+        Parler à notre conseiller
+      </button>
+    </div>
+    <div class="mt-16 flex justify-center gap-12 text-center">
+      <div><div class="text-3xl font-bold" style="color:var(--gold)">3</div><div class="text-xs text-gray-500 mt-1 tracking-wider">ÉPOQUES</div></div>
+      <div><div class="text-3xl font-bold" style="color:var(--gold)">500+</div><div class="text-xs text-gray-500 mt-1 tracking-wider">VOYAGEURS</div></div>
+      <div><div class="text-3xl font-bold" style="color:var(--gold)">100%</div><div class="text-xs text-gray-500 mt-1 tracking-wider">SÉCURISÉ</div></div>
+    </div>
+  </div>
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-10">
+    <div class="w-px h-12 mx-auto" style="background:linear-gradient(to bottom, var(--gold), transparent)"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ L'AGENCE ═══════════════════════════════════════ -->
+<section id="agence" class="py-24 px-6 relative z-10">
+  <div class="max-w-5xl mx-auto">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div class="reveal">
+        <p class="text-xs tracking-[0.4em] mb-4 uppercase" style="color:var(--gold)">L'Agence</p>
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">Pionniers du voyage temporel depuis 2089</h2>
+        <p class="text-gray-400 leading-relaxed mb-4">
+          <strong class="text-white">TimeTravel Agency</strong> est la première agence à offrir des séjours temporels d'exception, sécurisés et entièrement encadrés. Chaque expédition est préparée par nos historiens, paléontologues et guides certifiés pour une immersion totale, sans le moindre risque.
+        </p>
+        <p class="text-gray-400 leading-relaxed">
+          De la Belle Époque aux origines de la vie, nous transformons l'Histoire en une expérience que vous vivez de l'intérieur. Le luxe d'hier, la technologie de demain.
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-4 reveal">
+        <div class="p-6 rounded-2xl gold-border" style="background:var(--dark2)">
+          <div class="text-3xl mb-2" style="color:var(--gold)">🛡️</div>
+          <h3 class="text-white font-semibold mb-1 text-lg">Sécurité absolue</h3>
+          <p class="text-gray-500 text-sm">Extraction d'urgence 24h/24 et capsules de protection certifiées.</p>
+        </div>
+        <div class="p-6 rounded-2xl gold-border" style="background:var(--dark2)">
+          <div class="text-3xl mb-2" style="color:var(--gold)">🎓</div>
+          <h3 class="text-white font-semibold mb-1 text-lg">Guides experts</h3>
+          <p class="text-gray-500 text-sm">Historiens et scientifiques pour chaque destination.</p>
+        </div>
+        <div class="p-6 rounded-2xl gold-border" style="background:var(--dark2)">
+          <div class="text-3xl mb-2" style="color:var(--gold)">✨</div>
+          <h3 class="text-white font-semibold mb-1 text-lg">Immersion totale</h3>
+          <p class="text-gray-500 text-sm">Costumes d'époque, hébergement authentique, expérience sur mesure.</p>
+        </div>
+        <div class="p-6 rounded-2xl gold-border" style="background:var(--dark2)">
+          <div class="text-3xl mb-2" style="color:var(--gold)">🤖</div>
+          <h3 class="text-white font-semibold mb-1 text-lg">Conseiller IA</h3>
+          <p class="text-gray-500 text-sm">Un assistant disponible à toute heure pour préparer votre voyage.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ DESTINATIONS ═══════════════════════════════════════ -->
+<section id="destinations" class="py-24 px-6 relative z-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <p class="text-xs tracking-[0.4em] mb-4 uppercase" style="color:var(--gold)">Nos Destinations</p>
+      <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Choisissez votre époque</h2>
+      <p class="text-gray-400 max-w-xl mx-auto">Chaque destination est une immersion totale, encadrée par nos experts en voyages temporels.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+
+      <!-- Card Paris 1889 -->
+      <div class="dest-card gold-border rounded-xl overflow-hidden cursor-pointer reveal" style="background:var(--dark2)" onclick="openModal('paris')">
+        <div class="overflow-hidden h-56">
+          <img src="./images/paris.png" alt="Paris 1889" loading="lazy" class="w-full h-full object-cover" />
+        </div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs tracking-[0.3em] uppercase text-gray-500">1889 — France</span>
+            <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:rgba(201,168,76,0.15);color:var(--gold)">Belle Époque</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-2">Paris 1889</h3>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">Assistez à l'inauguration de la Tour Eiffel et plongez dans l'effervescence de l'Exposition Universelle.</p>
+          <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+            <div>
+              <span class="text-xs text-gray-500">À partir de</span>
+              <div class="text-xl font-bold" style="color:var(--gold)">4 500€</div>
+            </div>
+            <button class="px-4 py-2 text-xs tracking-widest uppercase rounded transition-all" style="border:1px solid var(--gold);color:var(--gold)" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+              Explorer →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Crétacé -->
+      <div class="dest-card gold-border rounded-xl overflow-hidden cursor-pointer reveal" style="background:var(--dark2)" onclick="openModal('cretace')">
+        <div class="overflow-hidden h-56">
+          <img src="./images/cretace.png" alt="Crétacé" loading="lazy" class="w-full h-full object-cover" />
+        </div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs tracking-[0.3em] uppercase text-gray-500">−65M ans</span>
+            <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:rgba(201,168,76,0.15);color:var(--gold)">Préhistoire</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-2">Crétacé</h3>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">Observez les dinosaures dans leur habitat naturel lors d'un safari préhistorique encadré par nos scientifiques.</p>
+          <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+            <div>
+              <span class="text-xs text-gray-500">À partir de</span>
+              <div class="text-xl font-bold" style="color:var(--gold)">6 800€</div>
+            </div>
+            <button class="px-4 py-2 text-xs tracking-widest uppercase rounded transition-all" style="border:1px solid var(--gold);color:var(--gold)" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+              Explorer →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Florence 1504 -->
+      <div class="dest-card gold-border rounded-xl overflow-hidden cursor-pointer reveal" style="background:var(--dark2)" onclick="openModal('florence')">
+        <div class="overflow-hidden h-56">
+          <img src="./images/florence.png" alt="Florence 1504" loading="lazy" class="w-full h-full object-cover" />
+        </div>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs tracking-[0.3em] uppercase text-gray-500">1504 — Italie</span>
+            <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:rgba(201,168,76,0.15);color:var(--gold)">Renaissance</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white mb-2">Florence 1504</h3>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">Rencontrez Michel-Ange et Léonard de Vinci au cœur de la Renaissance italienne à son apogée artistique.</p>
+          <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+            <div>
+              <span class="text-xs text-gray-500">À partir de</span>
+              <div class="text-xl font-bold" style="color:var(--gold)">5 200€</div>
+            </div>
+            <button class="px-4 py-2 text-xs tracking-widest uppercase rounded transition-all" style="border:1px solid var(--gold);color:var(--gold)" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+              Explorer →
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ MODALS DESTINATIONS ═══════════════════════════════════════ -->
+
+<!-- Modal Paris 1889 -->
+<div id="modal-paris" class="modal-overlay" onclick="if(event.target===this)closeModal('paris')">
+  <div class="modal-box w-full max-w-3xl mx-4 rounded-2xl overflow-hidden gold-border" style="background:var(--dark2)">
+    <div class="relative h-72 overflow-hidden">
+      <img src="./images/paris.png" alt="Paris 1889" loading="lazy" class="w-full h-full object-cover" />
+      <div class="absolute inset-0" style="background:linear-gradient(to bottom, transparent 40%, var(--dark2))"></div>
+      <button onclick="closeModal('paris')" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all" style="background:rgba(0,0,0,0.6)" onmouseover="this.style.background='rgba(201,168,76,0.3)'" onmouseout="this.style.background='rgba(0,0,0,0.6)'">✕</button>
+      <div class="absolute bottom-6 left-8">
+        <span class="text-xs tracking-[0.3em] uppercase" style="color:var(--gold)">France • 1889</span>
+        <h2 class="text-4xl font-black text-white mt-1">Paris 1889</h2>
+      </div>
+    </div>
+    <div class="p-8">
+      <p class="text-gray-300 leading-relaxed mb-6">
+        Plongez au cœur de l'<strong class="text-white">Exposition Universelle de 1889</strong>. Assistez en direct à l'inauguration de la Tour Eiffel par Gustave Eiffel lui-même, déambulez dans les grands boulevards illuminés au gaz, dégustez la haute cuisine française dans les brasseries de l'époque et côtoyez les artistes impressionnistes au Moulin Rouge.
+      </p>
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h4 class="text-xs tracking-[0.3em] uppercase mb-3" style="color:var(--gold)">Points forts</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Inauguration de la Tour Eiffel</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Café de la Paix & Moulin Rouge</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Rencontre avec les impressionnistes</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Bal de l'Opéra Garnier</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs tracking-[0.3em] uppercase mb-3" style="color:var(--gold)">Le séjour inclut</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Costume Belle Époque sur mesure</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Guide temporel privé</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Hébergement Grand Hôtel</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Assurance temporelle complète</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex items-center justify-between p-4 rounded-xl mb-6" style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2)">
+        <div class="flex gap-8">
+          <div><div class="text-xs text-gray-500 mb-1">Durée</div><div class="text-white font-medium">7 jours</div></div>
+          <div><div class="text-xs text-gray-500 mb-1">Confort</div><div class="text-white font-medium">★★★★★ Luxe</div></div>
+          <div><div class="text-xs text-gray-500 mb-1">Groupe max</div><div class="text-white font-medium">8 personnes</div></div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-gray-500">À partir de</div>
+          <div class="text-3xl font-black" style="color:var(--gold)">4 500€</div>
+        </div>
+      </div>
+      <button onclick="closeModal('paris');document.getElementById('contact').scrollIntoView()" class="w-full py-4 text-sm font-medium tracking-widest uppercase rounded-xl transition-all" style="background:var(--gold);color:#0a0a0f" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">
+        Réserver ce voyage →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crétacé -->
+<div id="modal-cretace" class="modal-overlay" onclick="if(event.target===this)closeModal('cretace')">
+  <div class="modal-box w-full max-w-3xl mx-4 rounded-2xl overflow-hidden gold-border" style="background:var(--dark2)">
+    <div class="relative h-72 overflow-hidden">
+      <img src="./images/cretace.png" alt="Crétacé" loading="lazy" class="w-full h-full object-cover" />
+      <div class="absolute inset-0" style="background:linear-gradient(to bottom, transparent 40%, var(--dark2))"></div>
+      <button onclick="closeModal('cretace')" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all" style="background:rgba(0,0,0,0.6)" onmouseover="this.style.background='rgba(201,168,76,0.3)'" onmouseout="this.style.background='rgba(0,0,0,0.6)'">✕</button>
+      <div class="absolute bottom-6 left-8">
+        <span class="text-xs tracking-[0.3em] uppercase" style="color:var(--gold)">Terre • −65 millions d'ans</span>
+        <h2 class="text-4xl font-black text-white mt-1">Crétacé</h2>
+      </div>
+    </div>
+    <div class="p-8">
+      <p class="text-gray-300 leading-relaxed mb-6">
+        Vivez les <strong class="text-white">derniers jours de l'ère des dinosaures</strong>. Observez des T-Rex, Tricératops et Ptérosaures dans leur habitat naturel depuis une bulle de protection invisible. Une expérience de safari unique, encadrée par nos paléontologues et guides de sécurité temporelle.
+      </p>
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h4 class="text-xs tracking-[0.3em] uppercase mb-3" style="color:var(--gold)">Points forts</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Safari T-Rex & Tricératops</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Forêts préhistoriques vierges</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Volcans et paysages grandioses</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Ciel étoilé sans pollution lumineuse</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs tracking-[0.3em] uppercase mb-3" style="color:var(--gold)">Le séjour inclut</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Combinaison temporelle haute protection</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Paléontologue accompagnateur</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Capsule d'observation blindée</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Extraction d'urgence 24h/24</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex items-center justify-between p-4 rounded-xl mb-6" style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2)">
+        <div class="flex gap-8">
+          <div><div class="text-xs text-gray-500 mb-1">Durée</div><div class="text-white font-medium">5 jours</div></div>
+          <div><div class="text-xs text-gray-500 mb-1">Confort</div><div class="text-white font-medium">★★★★ Aventure</div></div>
+          <div><div class="text-xs text-gray-500 mb-1">Groupe max</div><div class="text-white font-medium">6 personnes</div></div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-gray-500">À partir de</div>
+          <div class="text-3xl font-black" style="color:var(--gold)">6 800€</div>
+        </div>
+      </div>
+      <button onclick="closeModal('cretace');document.getElementById('contact').scrollIntoView()" class="w-full py-4 text-sm font-medium tracking-widest uppercase rounded-xl transition-all" style="background:var(--gold);color:#0a0a0f" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">
+        Réserver ce voyage →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Florence 1504 -->
+<div id="modal-florence" class="modal-overlay" onclick="if(event.target===this)closeModal('florence')">
+  <div class="modal-box w-full max-w-3xl mx-4 rounded-2xl overflow-hidden gold-border" style="background:var(--dark2)">
+    <div class="relative h-72 overflow-hidden">
+      <img src="./images/florence.png" alt="Florence 1504" loading="lazy" class="w-full h-full object-cover" />
+      <div class="absolute inset-0" style="background:linear-gradient(to bottom, transparent 40%, var(--dark2))"></div>
+      <button onclick="closeModal('florence')" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all" style="background:rgba(0,0,0,0.6)" onmouseover="this.style.background='rgba(201,168,76,0.3)'" onmouseout="this.style.background='rgba(0,0,0,0.6)'">✕</button>
+      <div class="absolute bottom-6 left-8">
+        <span class="text-xs tracking-[0.3em] uppercase" style="color:var(--gold)">Italie • 1504</span>
+        <h2 class="text-4xl font-black text-white mt-1">Florence 1504</h2>
+      </div>
+    </div>
+    <div class="p-8">
+      <p class="text-gray-300 leading-relaxed mb-6">
+        Traversez la <strong class="text-white">Renaissance italienne à son apogée</strong>. Croisez Michel-Ange au travail dans son atelier, visitez les collections privées de Léonard de Vinci, explorez les palais des Médicis et assistez à des banquets royaux en tenue d'époque.
+      </p>
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h4 class="text-xs tracking-[0.3em] uppercase mb-3" style="color:var(--gold)">Points forts</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Atelier privé de Michel-Ange</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Palais Pitti & jardins des Médicis</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Banquet Renaissance en palazzo</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Marché de l'Arno & Santa Maria del Fiore</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs tracking-[0.3em] uppercase mb-3" style="color:var(--gold)">Le séjour inclut</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Tenue Renaissance sur mesure</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Maître de cour personnel</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Logis dans un palazzo authentique</li>
+            <li class="flex items-start gap-2"><span style="color:var(--gold)">✦</span> Cours d'art avec un maître de la Renaissance</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex items-center justify-between p-4 rounded-xl mb-6" style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2)">
+        <div class="flex gap-8">
+          <div><div class="text-xs text-gray-500 mb-1">Durée</div><div class="text-white font-medium">6 jours</div></div>
+          <div><div class="text-xs text-gray-500 mb-1">Confort</div><div class="text-white font-medium">★★★★★ Noblesse</div></div>
+          <div><div class="text-xs text-gray-500 mb-1">Groupe max</div><div class="text-white font-medium">8 personnes</div></div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-gray-500">À partir de</div>
+          <div class="text-3xl font-black" style="color:var(--gold)">5 200€</div>
+        </div>
+      </div>
+      <button onclick="closeModal('florence');document.getElementById('contact').scrollIntoView()" class="w-full py-4 text-sm font-medium tracking-widest uppercase rounded-xl transition-all" style="background:var(--gold);color:#0a0a0f" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">
+        Réserver ce voyage →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ QUIZ ═══════════════════════════════════════ -->
+<section id="quiz" class="py-24 px-6 relative z-10" style="background:rgba(255,255,255,0.02)">
+  <div class="max-w-2xl mx-auto text-center">
+    <div class="reveal">
+      <p class="text-xs tracking-[0.4em] mb-4 uppercase" style="color:var(--gold)">Personnalisation</p>
+      <h2 class="text-4xl font-bold text-white mb-4">Quelle époque est faite pour vous ?</h2>
+      <p class="text-gray-400 mb-12">Répondez à 3 questions pour découvrir votre destination idéale.</p>
+    </div>
+    <div id="quiz-container">
+      <!-- Q1 -->
+      <div class="quiz-step" id="q1">
+        <p class="text-lg text-white mb-6 font-medium">1 / 3 — Quel type d'expérience recherchez-vous ?</p>
+        <div class="space-y-3">
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(1,'art')">Culturelle et artistique — art, architecture, histoire</button>
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(1,'aventure')">Aventure et nature — sensations fortes, faune sauvage</button>
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(1,'elegance')">Élégance et raffinement — gastronomie, mondanités, luxe</button>
+        </div>
+      </div>
+      <!-- Q2 -->
+      <div class="quiz-step hidden" id="q2">
+        <p class="text-lg text-white mb-6 font-medium">2 / 3 — Votre activité idéale ?</p>
+        <div class="space-y-3">
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(2,'musees')">Visiter des ateliers d'artistes et des palais</button>
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(2,'safari')">Observer une faune extraordinaire dans la nature</button>
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(2,'monuments')">Assister à des événements historiques monumentaux</button>
+        </div>
+      </div>
+      <!-- Q3 -->
+      <div class="quiz-step hidden" id="q3">
+        <p class="text-lg text-white mb-6 font-medium">3 / 3 — Votre ambiance préférée ?</p>
+        <div class="space-y-3">
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(3,'urbanite')">Effervescence urbaine — cafés, théâtres, boulevards animés</button>
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(3,'nature')">Nature sauvage — forêts, volcans, ciel étoilé</button>
+          <button class="quiz-btn w-full text-left px-6 py-4 rounded-xl gold-border text-gray-300 text-sm" onclick="quizAnswer(3,'palais')">Palais et cours royales — noblesse, art, banquets</button>
+        </div>
+      </div>
+      <!-- Résultat -->
+      <div class="quiz-step hidden" id="quiz-result">
+        <div class="p-8 rounded-2xl gold-border text-center" style="background:var(--dark2)">
+          <p class="text-xs tracking-[0.3em] uppercase mb-2" style="color:var(--gold)">Votre destination idéale</p>
+          <h3 id="result-title" class="text-3xl font-black text-white mb-4"></h3>
+          <p id="result-desc" class="text-gray-400 leading-relaxed mb-6"></p>
+          <div class="flex gap-3 justify-center flex-wrap">
+            <button id="result-btn" class="px-6 py-3 text-sm tracking-widest uppercase rounded-xl transition-all" style="background:var(--gold);color:#0a0a0f"></button>
+            <button onclick="resetQuiz()" class="px-6 py-3 text-sm tracking-widest uppercase rounded-xl gold-border text-gray-400 hover:text-white transition-all">Recommencer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Barre de progression -->
+    <div class="mt-8 flex gap-2 justify-center" id="quiz-progress">
+      <div class="h-1 w-12 rounded-full transition-all" id="p1" style="background:var(--gold)"></div>
+      <div class="h-1 w-12 rounded-full transition-all" id="p2" style="background:#333"></div>
+      <div class="h-1 w-12 rounded-full transition-all" id="p3" style="background:#333"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ CONTACT ═══════════════════════════════════════ -->
+<section id="contact" class="py-24 px-6 relative z-10">
+  <div class="max-w-2xl mx-auto reveal">
+    <div class="text-center mb-12">
+      <p class="text-xs tracking-[0.4em] mb-4 uppercase" style="color:var(--gold)">Réservation</p>
+      <h2 class="text-4xl font-bold text-white mb-4">Planifiez votre voyage</h2>
+      <p class="text-gray-400">Notre équipe vous contacte sous 24h pour finaliser votre aventure temporelle.</p>
+    </div>
+    <form class="space-y-4" onsubmit="submitForm(event)">
+      <div class="grid md:grid-cols-2 gap-4">
+        <input type="text" placeholder="Prénom" required class="w-full px-4 py-3 rounded-xl text-white text-sm outline-none focus:ring-1 transition-all" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2);color:white" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.2)'" />
+        <input type="text" placeholder="Nom" required class="w-full px-4 py-3 rounded-xl text-white text-sm outline-none focus:ring-1 transition-all" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2);color:white" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.2)'" />
+      </div>
+      <input type="email" placeholder="Email" required class="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2);color:white" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.2)'" />
+      <div class="grid md:grid-cols-2 gap-4">
+        <select id="contact-dest" class="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all" style="background:#111118;border:1px solid rgba(201,168,76,0.2);color:#9ca3af" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.2)'">
+          <option value="">Choisir une destination</option>
+          <option>Paris 1889 — 4 500€</option>
+          <option>Crétacé −65M ans — 6 800€</option>
+          <option>Florence 1504 — 5 200€</option>
+        </select>
+        <input type="date" class="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2);color:#9ca3af" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.2)'" />
+      </div>
+      <textarea placeholder="Message ou questions..." rows="3" class="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none transition-all" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2);color:white" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.2)'"></textarea>
+      <button type="submit" class="w-full py-4 text-sm font-medium tracking-widest uppercase rounded-xl transition-all" style="background:var(--gold);color:#0a0a0f" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">
+        Envoyer ma demande →
+      </button>
+    </form>
+    <div id="form-success" class="hidden text-center py-8">
+      <div class="text-4xl mb-4">✦</div>
+      <p class="text-white font-medium mb-2">Demande envoyée !</p>
+      <p class="text-gray-400 text-sm">Notre conseiller vous contactera sous 24h.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ FOOTER ═══════════════════════════════════════ -->
+<footer class="py-10 px-6 border-t border-gray-800 relative z-10">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-600">
+    <div class="flex items-center gap-2">
+      <span style="color:var(--gold)">✦</span>
+      <span style="font-family:'Playfair Display',serif;color:var(--gold)">TimeTravel Agency</span>
+    </div>
+    <p>© 2026 — Projet pédagogique IA M1/M2</p>
+    <p>Powered by IA générative</p>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════ CHATBOT ═══════════════════════════════════════ -->
+<div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+  <!-- Fenêtre chat -->
+  <div id="chat-window" class="flex-col w-80 rounded-2xl overflow-hidden shadow-2xl gold-border" style="background:var(--dark2);height:420px">
+    <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(201,168,76,0.1);border-bottom:1px solid rgba(201,168,76,0.2)">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+        <span class="text-sm font-medium text-white">Conseiller IA</span>
+      </div>
+      <button onclick="openChat()" class="text-gray-400 hover:text-white text-lg leading-none">✕</button>
+    </div>
+    <div id="chat-messages" class="chat-scroll flex-1 overflow-y-auto p-4 space-y-3 flex flex-col" style="height:300px">
+      <div class="chat-msg">
+        <div class="inline-block px-4 py-3 rounded-2xl rounded-tl-none text-sm leading-relaxed max-w-xs" style="background:rgba(201,168,76,0.12);color:#e8e8e8">
+          Bienvenue chez <strong>TimeTravel Agency</strong> ! Je suis votre conseiller personnel. Quelle époque vous fait rêver ? 🕰️
+        </div>
+      </div>
+    </div>
+    <div class="p-3 border-t border-gray-800">
+      <div class="flex gap-2">
+        <input id="chat-input" type="text" placeholder="Posez-moi vos questions sur les voyages temporels..." class="flex-1 px-3 py-2 rounded-xl text-sm outline-none" style="background:rgba(255,255,255,0.07);border:1px solid rgba(201,168,76,0.2);color:white" onkeydown="if(event.key==='Enter')sendChat()" />
+        <button onclick="sendChat()" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm transition-all" style="background:var(--gold);color:#0a0a0f" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">→</button>
+      </div>
+      <div class="flex gap-2 mt-2 flex-wrap">
+        <button class="text-xs px-2 py-1 rounded-full text-gray-400 hover:text-yellow-400 transition-colors" style="border:1px solid #333" onclick="quickMsg('Parle-moi de Paris 1889')">Paris 1889</button>
+        <button class="text-xs px-2 py-1 rounded-full text-gray-400 hover:text-yellow-400 transition-colors" style="border:1px solid #333" onclick="quickMsg('Parle-moi du Crétacé')">Crétacé</button>
+        <button class="text-xs px-2 py-1 rounded-full text-gray-400 hover:text-yellow-400 transition-colors" style="border:1px solid #333" onclick="quickMsg('Quels sont vos prix ?')">Prix</button>
+      </div>
+    </div>
+  </div>
+  <!-- Bouton -->
+  <button onclick="openChat()" id="chat-btn" class="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition-all hover:scale-110" style="background:var(--gold);color:#0a0a0f" aria-label="Ouvrir le conseiller IA">💬</button>
+</div>
+
+<!-- ═══════════════════════════════════════ JAVASCRIPT ═══════════════════════════════════════ -->
+<script>
+// ── Étoiles ──────────────────────────────────────────────
+(function(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random()*2+0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--o:${0.3+Math.random()*0.7};animation-delay:${Math.random()*4}s`;
+    c.appendChild(s);
+  }
+})();
+
+// ── Scroll reveal ─────────────────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ── Modals ────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById('modal-'+id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById('modal-'+id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') {
+    ['paris','cretace','florence'].forEach(closeModal);
+    document.body.style.overflow = '';
+  }
+});
+
+// ── Chatbot ───────────────────────────────────────────────
+let chatOpen = false;
+const chatHistory = [];          // mémoire de conversation envoyée à l'API
+const USE_AI_API = true;         // false = mode 100% local (sans serverless)
+
+function openChat() {
+  chatOpen = !chatOpen;
+  const w = document.getElementById('chat-window');
+  chatOpen ? w.classList.add('open') : w.classList.remove('open');
+  if (chatOpen) setTimeout(() => document.getElementById('chat-input').focus(), 100);
+}
+function quickMsg(txt) {
+  document.getElementById('chat-input').value = txt;
+  sendChat();
+}
+async function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  appendMsg(escapeHtml(msg), 'user');
+  chatHistory.push({ role: 'user', content: msg });
+  inp.value = '';
+  showTyping();
+
+  let reply = null;
+  if (USE_AI_API) {
+    reply = await askAI(msg);     // appelle /api/chat (Mistral) ; null si indisponible
+  }
+  if (reply == null) {
+    reply = getReply(msg);        // repli : réponses locales par mots-clés
+  }
+  removeTyping();
+  appendMsg(reply, 'bot');
+  chatHistory.push({ role: 'assistant', content: stripHtml(reply) });
+}
+
+// Appel au backend serverless (Mistral). Renvoie null en cas d'erreur => repli local.
+async function askAI(message) {
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history: chatHistory.slice(-8) })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !data.reply) return null;
+    return formatReply(data.reply);
+  } catch (e) {
+    return null;
+  }
+}
+
+function appendMsg(text, from) {
+  const div = document.createElement('div');
+  div.className = 'chat-msg flex ' + (from==='user' ? 'justify-end' : '');
+  div.innerHTML = `<div class="inline-block px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-xs ${from==='user' ? 'rounded-tr-none' : 'rounded-tl-none'}" style="background:${from==='user' ? 'rgba(201,168,76,0.25);color:#fff' : 'rgba(201,168,76,0.12);color:#e8e8e8'}">${text}</div>`;
+  const msgs = document.getElementById('chat-messages');
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function showTyping() {
+  const div = document.createElement('div');
+  div.id = 'typing';
+  div.className = 'chat-msg';
+  div.innerHTML = `<div class="inline-block px-4 py-3 rounded-2xl rounded-tl-none" style="background:rgba(201,168,76,0.12)"><span class="flex gap-1">${'<span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:var(--gold);animation-delay:0s"></span><span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:var(--gold);animation-delay:0.15s"></span><span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:var(--gold);animation-delay:0.3s"></span>'}</span></div>`;
+  document.getElementById('chat-messages').appendChild(div);
+  document.getElementById('chat-messages').scrollTop = 1e9;
+}
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if(t) t.remove();
+}
+
+// Sécurité : échappe le texte utilisateur ; convertit *gras* et retours ligne pour les réponses IA
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function stripHtml(s){ const d=document.createElement('div'); d.innerHTML=s; return d.textContent; }
+function formatReply(s){
+  return escapeHtml(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br/>');
+}
+
+// Réponses locales de repli (fonctionnent sans clé API)
+function getReply(msg) {
+  const m = msg.toLowerCase();
+  if(/paris|1889|belle.?époque|exposition|tour.?eiffel/.test(m))
+    return "✦ <strong>Paris 1889</strong> est notre destination phare ! Vous assisterez à l'inauguration de la Tour Eiffel et vivrez la Belle Époque dans toute sa splendeur. Séjour 7 jours à partir de <strong>4 500€</strong>. Souhaitez-vous en savoir plus ?";
+  if(/crétacé|cretace|dinosaure|t.?rex|préhistoire|jurassique/.test(m))
+    return "✦ Le <strong>Crétacé −65M ans</strong> est notre aventure la plus exclusive ! Safari T-Rex, forêts préhistoriques et volcans actifs. Séjour 5 jours à partir de <strong>6 800€</strong>. Nos capsules de protection garantissent votre sécurité totale.";
+  if(/florence|renaissance|michel.?ange|vinci|italie|1504/.test(m))
+    return "✦ <strong>Florence 1504</strong> — la Renaissance à son apogée ! Rencontrez Michel-Ange dans son atelier et les Médicis dans leurs palais. Séjour 6 jours à partir de <strong>5 200€</strong>, tenue d'époque incluse.";
+  if(/prix|tarif|coût|cout|combien|budget/.test(m))
+    return "Nos tarifs par personne :<br/>✦ Paris 1889 : <strong>4 500€</strong> (7j)<br/>✦ Florence 1504 : <strong>5 200€</strong> (6j)<br/>✦ Crétacé −65M : <strong>6 800€</strong> (5j)<br/>Tous les séjours incluent costume, guide et hébergement.";
+  if(/réserver|reserver|réservation|book|commander/.test(m))
+    return "Pour réserver, scrollez jusqu'au <strong>formulaire de réservation</strong> en bas de page. Notre équipe vous recontacte sous 24h pour finaliser votre aventure temporelle ! ✦";
+  if(/bonjour|salut|hello|bonsoir|coucou/.test(m))
+    return "Bonjour et bienvenue ! ✦ Je suis votre conseiller personnel TimeTravel Agency. Quelle époque vous attire : <strong>Paris 1889</strong>, le <strong>Crétacé</strong> ou <strong>Florence 1504</strong> ?";
+  if(/sécurité|securite|danger|risque/.test(m))
+    return "Votre sécurité est notre priorité absolue ! ✦ Chaque voyage est encadré par des experts, avec extraction d'urgence 24h/24 et combinaisons de protection temporelle de dernière génération.";
+  return "Je peux vous renseigner sur nos 3 destinations : <strong>Paris 1889</strong>, le <strong>Crétacé −65M ans</strong> ou <strong>Florence 1504</strong>. Quelle époque vous fait rêver ? ✦";
+}
+
+// ── Quiz ──────────────────────────────────────────────────
+let quizStep = 1;
+const quizScores = {paris:0, cretace:0, florence:0};
+function quizAnswer(q, choice) {
+  if(q===1){ if(choice==='art')quizScores.florence+=2; if(choice==='aventure')quizScores.cretace+=2; if(choice==='elegance')quizScores.paris+=2; }
+  if(q===2){ if(choice==='musees')quizScores.florence+=2; if(choice==='safari')quizScores.cretace+=2; if(choice==='monuments')quizScores.paris+=2; }
+  if(q===3){ if(choice==='urbanite')quizScores.paris+=2; if(choice==='nature')quizScores.cretace+=2; if(choice==='palais')quizScores.florence+=2; }
+  quizStep++;
+  document.getElementById('q'+q).classList.add('hidden');
+  if(quizStep<=3){ document.getElementById('q'+quizStep).classList.remove('hidden'); document.getElementById('p'+quizStep).style.background='var(--gold)'; }
+  else { showQuizResult(); }
+}
+function showQuizResult() {
+  document.getElementById('quiz-progress').classList.add('hidden');
+  const winner = Object.entries(quizScores).sort((a,b)=>b[1]-a[1])[0][0];
+  const results = {
+    paris: { title:'Paris 1889', desc:'Vous êtes fait pour la Belle Époque ! L\'effervescence parisienne, la Tour Eiffel et les grands boulevards vous attendent. Un séjour de 7 jours de pur raffinement.', btn:'Voir Paris 1889', modal:'paris' },
+    cretace: { title:'Crétacé −65M ans', desc:'L\'aventure vous appelle ! Vous êtes prêt pour le safari ultime : observer les dinosaures dans leur habitat naturel. Une expérience hors du commun pour les esprits curieux.', btn:'Voir le Crétacé', modal:'cretace' },
+    florence: { title:'Florence 1504', desc:'L\'art et la beauté vous définissent ! La Renaissance italienne à son apogée, les ateliers des grands maîtres et les palais des Médicis vous tendent les bras.', btn:'Voir Florence 1504', modal:'florence' }
+  };
+  const r = results[winner];
+  document.getElementById('result-title').textContent = r.title;
+  document.getElementById('result-desc').textContent = r.desc;
+  const btn = document.getElementById('result-btn');
+  btn.textContent = r.btn;
+  btn.onclick = () => openModal(r.modal);
+  document.getElementById('quiz-result').classList.remove('hidden');
+}
+function resetQuiz() {
+  quizStep = 1; quizScores.paris=0; quizScores.cretace=0; quizScores.florence=0;
+  document.getElementById('quiz-result').classList.add('hidden');
+  document.getElementById('quiz-progress').classList.remove('hidden');
+  ['p1','p2','p3'].forEach((p,i)=>document.getElementById(p).style.background=i===0?'var(--gold)':'#333');
+  ['q2','q3'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('q1').classList.remove('hidden');
+}
+
+// ── Formulaire ────────────────────────────────────────────
+function submitForm(e) {
+  e.preventDefault();
+  e.target.classList.add('hidden');
+  document.getElementById('form-success').classList.remove('hidden');
+}
+</script>
+</body>
+</html>

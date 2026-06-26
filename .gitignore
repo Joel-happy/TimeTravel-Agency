@@ -1,0 +1,15 @@
+# Dépendances
+node_modules/
+
+# Secrets — ne jamais committer la clé API
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+*.log
